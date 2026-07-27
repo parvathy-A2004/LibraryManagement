@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Issue Book
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5" style="max-width:600px;">
+
+    <h2 class="text-primary mb-4">
+        📖 Issue Book
+    </h2>
+
+    <form method="POST">
+
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button type="submit" class="btn btn-success">
+            Issue Book
+        </button>
+
+        <a href="{% url 'issue_list' %}" class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+
+</div>
+
+{% endblock %}

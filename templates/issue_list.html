@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Issued Books
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h2 class="text-primary">
+            📖 Issued Books
+        </h2>
+
+        <a href="{% url 'issue_book' %}" class="btn btn-success">
+            + Issue Book
+        </a>
+
+    </div>
+
+    <table class="table table-bordered table-striped">
+
+        <thead class="table-primary">
+
+            <tr>
+                <th>Student</th>
+                <th>Book</th>
+                <th>Issue Date</th>
+                <th>Due Date</th>
+                <th>Return Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+        {% for issue in issues %}
+
+            <tr>
+
+    <td>{{ issue.student.name }}</td>
+    <td>{{ issue.book.title }}</td>
+    <td>{{ issue.issue_date }}</td>
+    <td>{{ issue.due_date }}</td>
+
+    <td>{{ issue.return_date|default:"-" }}</td>
+
+    <td>{{ issue.status }}</td>
+
+    <td>
+
+        {% if issue.status == "Issued" %}
+
+        <a href="{% url 'return_book' issue.id %}"
+           class="btn btn-success btn-sm"
+           onclick="return confirm('Return this book?')">
+            Return
+        </a>
+
+        {% else %}
+
+        <span class="badge bg-secondary">
+            Returned
+        </span>
+
+        {% endif %}
+
+    </td>
+
+</tr>
+
+        {% empty %}
+
+            <tr>
+
+                <td colspan="5" class="text-center">
+                    No books issued.
+                </td>
+
+            </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% endblock %}
