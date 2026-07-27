@@ -20,7 +20,7 @@ Issued Books
 
     </div>
 
-    <table class="table table-bordered table-striped">
+    <table class="table table-bordered table-striped text-center align-middle">
 
         <thead class="table-primary">
 
@@ -30,62 +30,106 @@ Issued Books
                 <th>Issue Date</th>
                 <th>Due Date</th>
                 <th>Return Date</th>
+                 <th>Fine</th>
                 <th>Status</th>
                 <th>Action</th>
             </tr>
 
         </thead>
 
-        <tbody>
+       <tbody>
 
-        {% for issue in issues %}
+{% for issue in issues %}
 
-            <tr>
+<tr {% if issue.status == "Issued" and issue.due_date < today %}class="table-danger"{% endif %}>
 
-    <td>{{ issue.student.name }}</td>
-    <td>{{ issue.book.title }}</td>
-    <td>{{ issue.issue_date }}</td>
-    <td>{{ issue.due_date }}</td>
-
-    <td>{{ issue.return_date|default:"-" }}</td>
-
-    <td>{{ issue.status }}</td>
-
+    <!-- Student -->
     <td>
+    <a href="{% url 'student_history' issue.student.id %}"
+       class="text-decoration-none fw-bold">
+        {{ issue.student.name }}
+    </a>
+</td>
 
-        {% if issue.status == "Issued" %}
+    <!-- Book -->
+    <td>{{ issue.book.title }}</td>
 
-        <a href="{% url 'return_book' issue.id %}"
-           class="btn btn-success btn-sm"
-           onclick="return confirm('Return this book?')">
-            Return
-        </a>
+    <!-- Issue Date -->
+    <td>{{ issue.issue_date }}</td>
+
+    <!-- Due Date -->
+    <td>
+        {% if issue.status == "Issued" and issue.due_date < today %}
+            <span class="text-danger fw-bold">
+                {{ issue.due_date }}
+            </span>
+        {% else %}
+            {{ issue.due_date }}
+        {% endif %}
+    </td>
+
+    <!-- Return Date -->
+    <td>
+        {% if issue.return_date %}
+            <span class="text-success fw-bold">
+                {{ issue.return_date }}
+            </span>
+        {% else %}
+            -
+        {% endif %}
+    </td>
+
+    <!-- Fine -->
+
+<td>
+    {% if issue.current_fine > 0 %}
+        <span class="text-danger fw-bold">
+             ₹{{ issue.current_fine|floatformat:2 }}
+        </span>
+    {% else %}
+        -
+    {% endif %}
+</td>
+
+    <!-- Status -->
+    <td>
+        {% if issue.status == "Returned" %}
+            <span class="badge bg-success">Returned</span>
+
+        {% elif issue.status == "Issued" and issue.due_date < today %}
+            <span class="badge bg-danger">Overdue</span>
 
         {% else %}
-
-        <span class="badge bg-secondary">
-            Returned
-        </span>
-
+            <span class="badge bg-warning text-dark">Issued</span>
         {% endif %}
+    </td>
 
+    <!-- Action -->
+    <td>
+        {% if issue.status == "Issued" %}
+            <a href="{% url 'return_book' issue.id %}"
+               class="btn btn-success btn-sm"
+               onclick="return confirm('Return this book?')">
+                Return
+            </a>
+        {% else %}
+            -
+        {% endif %}
     </td>
 
 </tr>
 
-        {% empty %}
+{% empty %}
 
-            <tr>
+<tr>
+    <td colspan="8" class="text-center">
+        No books issued.
+    </td>
+</tr>
 
-                <td colspan="5" class="text-center">
-                    No books issued.
-                </td>
+{% endfor %}
 
-            </tr>
-
-        {% endfor %}
-
-        </tbody>
+</tbody>
 
     </table>
 

@@ -59,6 +59,7 @@ Students
                 {% if user.is_authenticated %}
                 <th>Actions</th>
                 {% endif %}
+                <th>History</th>
 
             </tr>
 
@@ -66,49 +67,50 @@ Students
 
         <tbody>
 
-        {% for student in students %}
+{% for student in students %}
 
-            <tr>
+<tr>
 
-                <td>{{ student.name }}</td>
-                <td>{{ student.roll_no }}</td>
-                <td>{{ student.department }}</td>
-                <td>{{ student.email }}</td>
-                <td>{{ student.phone }}</td>
+    <td>{{ student.name }}</td>
+    <td>{{ student.roll_no }}</td>
+    <td>{{ student.department }}</td>
+    <td>{{ student.email }}</td>
+    <td>{{ student.phone }}</td>
 
-                {% if user.is_authenticated %}
-                <td>
+    {% if user.is_authenticated %}
+    <td>
+        <a href="{% url 'edit_student' student.id %}" class="btn btn-warning btn-sm">
+            Edit
+        </a>
 
-                    <a href="{% url 'edit_student' student.id %}" class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
+        <a href="{% url 'delete_student' student.id %}"
+           class="btn btn-danger btn-sm"
+           onclick="return confirm('Delete this student?')">
+            Delete
+        </a>
+    </td>
+    {% endif %}
 
-                    <a href="{% url 'delete_student' student.id %}"
-                       class="btn btn-danger btn-sm"
-                       onclick="return confirm('Are you sure you want to delete this student?')">
-                        Delete
-                    </a>
+    <td>
+        <a href="{% url 'student_history' student.id %}"
+           class="btn btn-info btn-sm">
+            History
+        </a>
+    </td>
 
-                </td>
-                {% endif %}
+</tr>
 
-            </tr>
+{% empty %}
 
-        {% empty %}
+<tr>
+    <td colspan="7" class="text-center">
+        No students found.
+    </td>
+</tr>
 
-            <tr>
+{% endfor %}
 
-                <td colspan="{% if user.is_authenticated %}6{% else %}5{% endif %}" class="text-center">
-
-                    No students available.
-
-                </td>
-
-            </tr>
-
-        {% endfor %}
-
-        </tbody>
+</tbody>
 
     </table>
 

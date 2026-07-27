@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Student History
+{% endblock %}
+
+{% block content %}
+
+<div class="container mt-5">
+
+    <h2 class="text-primary">
+        📚 {{ student.name }}'s Borrowing History
+    </h2>
+
+    <hr>
+
+    <table class="table table-bordered table-striped text-center">
+
+        <thead class="table-primary">
+            <tr>
+                <th>Book</th>
+                <th>Issue Date</th>
+                <th>Due Date</th>
+                <th>Return Date</th>
+                <th>Fine</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+        {% for issue in history %}
+
+        <tr>
+            <td>{{ issue.book.title }}</td>
+            <td>{{ issue.issue_date }}</td>
+            <td>{{ issue.due_date }}</td>
+            <td>{{ issue.return_date|default:"-" }}</td>
+            <td>₹{{ issue.fine }}</td>
+
+            <td>
+                {% if issue.status == "Returned" %}
+                    <span class="badge bg-success">Returned</span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">Issued</span>
+                {% endif %}
+            </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+            <td colspan="6">No borrowing history found.</td>
+        </tr>
+
+        {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    <a href="{% url 'student_list' %}" class="btn btn-secondary">
+        Back
+    </a>
+
+</div>
+
+{% endblock %}

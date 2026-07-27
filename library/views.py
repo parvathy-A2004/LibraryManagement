@@ -4,6 +4,9 @@ from django.db.models import Q
 from .forms import BookForm, StudentForm, IssueBookForm
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
+from datetime import date
+from datetime import timedelta
+
 
 def home(request):
     return render(request, 'home.html')
@@ -155,46 +158,51 @@ def delete_student(request, id):
 
 @login_required
 def issue_list(request):
-
     issues = IssueBook.objects.all()
+    today = date.today()
 
-    return render(
-        request,
-        'issue_list.html',
-        {
-            'issues': issues
-        }
-    )
+    for issue in issues:
+        if issue.status == "Issued":
+            if issue.due_date < today:
+                days_overdue = (today - issue.due_date).days
+                issue.current_fine = days_overdue * 5
+            else:
+                issue.current_fine = 0
+        else:
+            # After returning, show the stored fine
+            issue.current_fine = issue.fine
 
+    return render(request, "issue_list.html", {
+        "issues": issues,
+        "today": today,
+    })
 
 @login_required
 def issue_book(request):
-
-    if request.method == 'POST':
-
+    if request.method == "POST":
         form = IssueBookForm(request.POST)
 
         if form.is_valid():
+            issue = form.save(commit=False)
 
-            issue = form.save()
+            # Automatically set dates
+            issue.issue_date = timezone.now().date()
+            issue.due_date = timezone.now().date() + timedelta(days=7)
+            issue.status = "Issued"
 
-            # Reduce available quantity
-            issue.book.quantity -= 1
-            issue.book.save()
+            if issue.book.quantity <= 0:
+                form.add_error("book", "This book is currently not available.")
+            else:
+                issue.save()
 
-            return redirect('issue_list')
+                issue.book.quantity -= 1
+                issue.book.save()
 
+                return redirect("issue_list")
     else:
-
         form = IssueBookForm()
 
-    return render(
-        request,
-        'issue_book.html',
-        {
-            'form': form
-        }
-    )
+    return render(request, "issue_book.html", {"form": form})
 
 @login_required
 def return_book(request, id):
@@ -205,9 +213,53 @@ def return_book(request, id):
 
         issue.status = "Returned"
         issue.return_date = timezone.now().date()
+
+        # Calculate fine (₹5 per day after due date)
+        if issue.return_date > issue.due_date:
+            days_late = (issue.return_date - issue.due_date).days
+            issue.fine = days_late * 5
+        else:
+            issue.fine = 0
+
         issue.save()
 
+        # Increase available quantity
         issue.book.quantity += 1
         issue.book.save()
 
-    return redirect('issue_list')
+    return redirect("issue_list")
+
+
+@login_required
+def dashboard(request):
+
+    total_books = Book.objects.count()
+
+    total_students = Student.objects.count()
+
+    total_issued = IssueBook.objects.filter(status="Issued").count()
+
+    total_returned = IssueBook.objects.filter(status="Returned").count()
+
+    available_books = Book.objects.filter(quantity__gt=0).count()
+
+    context = {
+        "total_books": total_books,
+        "total_students": total_students,
+        "total_issued": total_issued,
+        "total_returned": total_returned,
+        "available_books": available_books,
+    }
+
+    return render(request, "dashboard.html", context)
+
+@login_required
+def student_history(request, id):
+    student = get_object_or_404(Student, id=id)
+
+    history = IssueBook.objects.filter(student=student)
+
+    return render(request, "student_history.html", {
+        "student": student,
+        "history": history,
+    })
